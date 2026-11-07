@@ -1,0 +1,15 @@
+# Actuary sign-off. Every signed claim waits for the actuary before money moves.
+# Flags tell the actuary where to look first. Whether one holds is computed from the
+# evidence, and a flag never decides. Ids are permanent: never renumber or reuse one.
+- id: F1_large
+  text: Pays half or more of the sum insured.
+- id: F2_near_gate
+  text: Confidence is within 5 points of the gate.
+- id: F3_report_conflict
+  text: The farmer's report is two or more bands from the estimate.
+- id: F4_challenged
+  text: The adjuster challenged this claim at least once.
+- id: F5_model_review
+  text: A model, not the rules, approved this claim in review.
+- id: F6_adjuster_hold
+  text: The adjuster still holds this claim after three rounds. Only a person can release it.

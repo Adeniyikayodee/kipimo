@@ -1,0 +1,8 @@
+# Insurer audit policy. The adjuster may challenge a claim only by citing a rule that holds;
+# whether it holds is computed from the evidence, never asserted.
+- id: A1_coverage
+  text: A payable claim needs at least 25% of the parcel observed by the drone.
+- id: A2_report_conflict
+  text: When the farmer's report and the estimate are two or more bands apart, at least 50% of the parcel must be observed.
+- id: A3_tier_edge
+  text: When the estimate is within 3 points of a payout threshold, confidence must be at least 0.90.

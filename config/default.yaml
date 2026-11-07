@@ -1,0 +1,58 @@
+seed: 7
+world:
+  size: 256
+  cell_m: 4.0
+  n_parcels: [12, 20]
+robot:
+  battery_wh: 200.0
+  hover_w: 330.0
+  max_airspeed: 15.0
+  tilt_deg: 25.0
+  speed_mps: 8.0
+  altitude_m: 40.0
+  fov_deg: 80.0
+  reserve_wh: 12.0
+sim:
+  dt: 1.0
+  sensor: sim
+belief:
+  k: 12.0
+  k0: 2.0
+  h: 30.0
+  rho: 0.3
+  sigma_extrap: 0.07
+  ref_width: 0.6
+  corr_cells: 160.0
+  gp:  # python -m kipimo.belief.fit, seeds 3000-3029
+    s_bias: 0.0318
+    s_prior: 0.1028
+    s_resp: 0.0649
+    s_parcel: 0.0247
+    bias_frac: 0.211
+    blocks: [[0.00305, 14.1], [0.0018, 56.5], [0.00124, 1354.8]]
+envelope:
+  geofence_margin_m: 40.0
+  zone_margin_m: 6.0
+  no_fly: []
+planner:
+  fixed_cost_m: 60.0
+  min_gain_per_m: 0.2
+agent:
+  model: gemini-4-argon  # Adjuster: careful claim review
+  roles:
+    field: gemini-robotics-er-2-preview  # embodied reasoning for the drone
+    farmer: gemini-3.8-flash  # fast, multilingual texts
+  thinking:  # Gemini thinking level per role; low is about twice as fast
+    field: medium
+    adjuster: medium
+    farmer: low
+  max_tool_calls: 45
+  max_seconds: 300.0
+  mission_seconds: 1200.0
+  max_sortie_m: 3000.0
+uplink:
+  state: online
+  loss_pct: 30.0
+  latency_ms: 800.0
+  db: ":memory:"
+  schedule: []

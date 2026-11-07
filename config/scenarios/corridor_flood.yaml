@@ -1,0 +1,9 @@
+seed: 11
+world:
+  terrain: tana  # real relief, lower Tana near Garsen
+  flood_stage: [1.0, 1.7]  # river stays near its channel; fewer parcels payable
+envelope:
+  no_fly:
+    - {x: 480.0, y: 160.0, r: 40.0, name: school_field}
+agent:
+  max_sortie_m: 2200.0

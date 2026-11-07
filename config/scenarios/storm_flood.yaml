@@ -1,0 +1,11 @@
+# The demo flood with a storm overhead for the first hours: the drone must wait for the window.
+seed: 7
+world:
+  terrain: tana  # real relief, lower Tana near Garsen
+envelope:
+  no_fly:
+    - {x: 370.0, y: 680.0, r: 45.0, name: heronry}  # nesting birds on the oxbow
+agent:
+  max_sortie_m: 1800.0
+weather:
+  enabled: true

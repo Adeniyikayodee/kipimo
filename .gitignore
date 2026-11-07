@@ -1,0 +1,19 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+events.jsonl
+/runs/
+*.sqlite
+models/
+# working notes, kept local
+AGENTVERSE_PLAN.md
+HACK_PLAN.md
+CLAUDE.md
+DEMO.md
+evals/runs/*/
+data/
+site/
+.DS_Store
+.env

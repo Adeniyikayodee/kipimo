@@ -1,0 +1,53 @@
+[project]
+name = "kipimo"
+version = "0.1.0"
+description = "Autonomous parametric loss assessment"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "cbor2>=5.6",
+    "cryptography>=43",
+    "fastapi>=0.115",
+    "google-genai>=2.33.0",
+    "mcp>=1.2",
+    "numpy>=2.0",
+    "onnxruntime>=1.19",
+    "pydantic>=2.7",
+    "pyyaml>=6.0",
+    "uvicorn[standard]>=0.30",
+]
+
+[dependency-groups]
+bench = [
+    "pillow>=10",
+]
+dev = [
+    "httpx>=0.27",
+    "websockets>=13",
+    "pytest>=8.0",
+    "ruff>=0.6",
+]
+geo = [
+    "pyarrow>=26.0.0",
+]
+train = [
+    "onnx>=1.16",
+    "torch>=2.4",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/kipimo"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E702"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,4 @@
+# Benchmark: flood confined near the river channel. Seeds 200 to 214.
+seeds: [200, 214]
+world:
+  flood_stage: [1.0, 1.7]

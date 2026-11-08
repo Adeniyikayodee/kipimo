@@ -103,7 +103,8 @@ canvas#map { background: #111113; border-radius: 10px; }
 .l3.zone { border-color: rgba(255, 69, 58, .6); } .l3.zone b { color: var(--red); }
 .l3.hub b { font-weight: 600; }
 .l3.pick { pointer-events: auto; cursor: pointer; opacity: 0; transition: opacity .3s, border-color .3s; }
-#scene3d:hover .l3.pick, .l3.pick.paid, .l3.pick.refused, .l3.pick.sel { opacity: 1; }
+#scene3d:hover .l3.pick, .l3.pick.paid, .l3.pick.refused, .l3.pick.surge, .l3.pick.sel { opacity: 1; }
+.l3.surge { border-color: #409cff; background: rgba(10, 132, 255, .28); } .l3.surge i { background: #409cff; } .l3.surge span { color: #cfe6ff; font-weight: 600; }
 .l3.pick:hover { border-color: rgba(235, 235, 245, .5); }
 .l3.sel { background: var(--label); color: #000; border-color: var(--label); z-index: 99999 !important; }
 .l3.sel span { color: rgba(0, 0, 0, .6); } .l3.sel i { background: var(--blue); }

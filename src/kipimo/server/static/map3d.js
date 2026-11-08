@@ -436,8 +436,8 @@ function place(el, at) {
 const paid = new Map(), rings = [];
 function updateTags() {
   for (const { q, el } of parcelTags) {
-    const c = S.claims.get(q.id)?.approved ? S.claims.get(q.id) : null, st = (c ? "paid" : S.refused.has(q.id) ? "refused" : S.focus.has(q.id) ? "focus" : "") + (sel === q.id ? " sel" : "");
-    if (el.dataset.st !== st) { el.className = "l3 pick " + st; el.dataset.st = st; el.querySelector("span").textContent = c ? fmtKES(c.amount) : st === "refused" ? "needs another look" : ""; }
+    const c = S.claims.get(q.id)?.approved ? S.claims.get(q.id) : null, st = (c ? "paid" : S.refused.has(q.id) ? "refused" : S.surge.has(q.id) ? "surge" : S.focus.has(q.id) ? "focus" : "") + (sel === q.id ? " sel" : "");
+    if (el.dataset.st !== st) { el.className = "l3 pick " + st; el.dataset.st = st; el.querySelector("span").textContent = c ? fmtKES(c.amount) : st.startsWith("refused") ? "needs another look" : st.startsWith("surge") ? "just flooded" : ""; }
     if (c && !paid.has(q.id)) { paid.set(q.id, true); pulse(q); }
     place(el, P(q.cx, q.cy, h0(q.cx, q.cy) * EX + 14));
   }

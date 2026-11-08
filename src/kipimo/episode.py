@@ -44,6 +44,8 @@ class Episode:
         self.env = Envelope(self.world, cfg.envelope, self.home)
         self.down = False  # forced landing: the airframe never moves again
         self.live_time = False  # the dashboard sets it: sim time runs while an agent thinks
+        self.version = 0  # bumps when the world changes mid-mission, so plans can be redone
+        self.surged: set[str] = set()
         self.sensor: SensorSource = make_sensor(cfg.sim.sensor, self.world, self.rng.spawn(1)[0])
         self.belief = (
             GPBelief(self.world, cfg.belief)
@@ -82,13 +84,21 @@ class Episode:
             return "wind"
         return "" if self.env.inside_fence((p.x, p.y)) else "geofence"
 
-    def fly_to(self, x: float, y: float, abort: bool = True, stop_on_camera: bool = False) -> bool:
+    def fly_to(
+        self,
+        x: float,
+        y: float,
+        abort: bool = True,
+        stop_on_camera: bool = False,
+        stop_on_change: bool = False,
+    ) -> bool:
         """Fly to a waypoint, observing every tick. False if it stopped short.
 
         abort: stop on wind over the limit or a geofence breach. Homeward legs pass False.
         stop_on_camera: stop the moment the camera degrades or recovers, so an agent can respond.
+        stop_on_change: stop the moment the world changes (a river breach), so the plan is redone.
         """
-        dt, cam = self.cfg.sim.dt, self.sensor.degraded
+        dt, cam, version = self.cfg.sim.dt, self.sensor.degraded, self.version
         while not self.down:
             if abort and (why := self.no_go()):
                 self.bus.emit("LEG_ABORTED", reason=why, pose=self.robot.pose)
@@ -105,7 +115,23 @@ class Episode:
                 return True
             elif stop_on_camera and self.sensor.degraded != cam:
                 return False
+            elif stop_on_change and self.version != version:
+                return False
         return False
+
+    def surge(self) -> list[str]:
+        """The river breaks its bank into the lowest dry fields; a radar pass reports it."""
+        from kipimo.world.surge import RADAR_QUALITY, breach, radar_pass
+
+        pids = breach(self.world, self.surged)
+        if not pids:
+            return []
+        self.surged |= set(pids)
+        rng = np.random.default_rng([self.cfg.seed, len(self.surged)])
+        self.belief.update(radar_pass(self.world, pids, self.bus.t, rng))
+        self.version += 1
+        self.bus.emit("RIVER_SURGE", parcels=pids, radar_quality=RADAR_QUALITY)
+        return pids
 
     def hold(self) -> None:
         """One tick while an agent thinks: the drone hovers where it is, or waits on the pad."""

@@ -218,6 +218,8 @@ class Session:
             elif cmd["cmd"] == "degrade":
                 st.ep.sensor.degraded = cmd["on"]
                 st.ep.bus.emit("SENSOR_STATE", degraded=st.ep.sensor.degraded)
+            elif cmd["cmd"] == "surge":
+                st.ep.surge()
             elif cmd["cmd"] == "decide":  # a stale or repeated click finds no open case
                 st.actuary.decide(cmd["case_id"], cmd["decision"], st.actuary.name, cmd["note"])
             elif cmd["cmd"] == "approve_clean":
@@ -438,6 +440,8 @@ async def command(msg: dict) -> None:
         cmd == "degrade" and isinstance(msg["on"], bool)
     ):
         session.commands.put(msg)
+    elif cmd == "surge":
+        session.commands.put({"cmd": "surge"})
     elif cmd == "decide" and msg["decision"] in approval.DECISIONS:
         case, note = msg["case_id"], msg.get("note", "")
         if not (isinstance(case, str) and isinstance(note, str) and len(note) <= 300):

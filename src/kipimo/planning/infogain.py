@@ -314,6 +314,7 @@ def survey(
             parcels=sorted({ln.parcel_id for ln, *_ in batch}),
             path=[[a, b] for _, a, b, _ in batch],
         )
+        version = ep.version
         for lane, a, b, gain in batch:
             if ep.sensor.degraded != degraded:
                 if on_degrade:
@@ -337,7 +338,13 @@ def survey(
                 ep.bus.emit("RETURN_TO_HOME", reason=verdict.reason, battery_wh=r.battery_wh)
                 return "battery_reserve"
             ep.bus.emit("PLAN_LANE", parcel=lane.parcel_id, a=a, b=b, gain=gain)
-            if not all(ep.fly_to(x, y, stop_on_camera=stop_on_camera) for x, y in path):
+            flown = all(
+                ep.fly_to(x, y, stop_on_camera=stop_on_camera, stop_on_change=True) for x, y in path
+            )
+            if not flown and ep.version != version:  # the world changed mid-lane: plan again
+                ep.bus.emit("SURGE_REPLAN", parcels=sorted(ep.surged))
+                break
+            if not flown:
                 if stop_on_camera and ep.sensor.degraded != degraded:
                     q = round(camera_quality(r, ep.sensor.degraded), 3)
                     ep.bus.emit("DEGRADED_SENSOR_REPLAN", degraded=ep.sensor.degraded, quality=q)

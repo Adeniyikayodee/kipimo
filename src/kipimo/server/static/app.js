@@ -20,7 +20,7 @@ function fresh() {
   S = {
     world: null, pmap: null, truth: null, frame: null, layers: {},
     path: [], pose: null, wind: null, power: null, alt: 40, battery: null, battery0: null, distance: 0, quality: null,
-    lanes: [], focus: new Set(), claims: new Map(), refused: new Map(), cases: new Map(), paidTotal: 0,
+    lanes: [], focus: new Set(), claims: new Map(), refused: new Map(), cases: new Map(), paidTotal: 0, surge: new Set(),
     uplink: { state: "online", depth: 0, bytes: 0, settled: 0, pkt: 0 },
     perception: null, sensorDegraded: false, events: 0, head: "", t: 0, policy: "", gate: 0.8,
     sortieStart: 0, done: false, first: null, thread: [], lang: {},
@@ -416,6 +416,12 @@ function onEvent(ev) {
       S.sensorDegraded = d.degraded; $("degrade").classList.toggle("on", d.degraded);
       log(d.degraded ? "warn" : "", "camera", d.degraded ? "<b>blurred</b>, image quality 30%" : "restored");
       break;
+    case "RIVER_SURGE":
+      for (const p of d.parcels) S.surge.add(p);
+      log("bad", "river", `<b>The river broke its bank</b> into ${d.parcels.join(", ")}. A satellite radar pass reports new water there`);
+      status(`River breach: ${d.parcels.join(", ")} just flooded`);
+      break;
+    case "SURGE_REPLAN": log("warn", "planner", `<b>Re-planned</b> on board: the drone turns toward the flooded fields`); status("Re-planned on board: heading to the flooded fields"); break;
     case "DEGRADED_SENSOR_REPLAN": log("warn", "planner", `Replanned for ${Math.round(d.quality * 100)}% image quality`); break;
     case "FLOOD_ALERT": log("warn", "flood hub", `${esc(d.gauge)} passes danger level ${d.danger_m} m at ${String(d.local_hour).padStart(2, "0")}:00, ${d.lead_h} h ahead. No farmer had to call`); break;
     case "FLOOD_WATCH": log("", "flood hub", `${esc(d.gauge)} peaks at ${d.peak_m} m, below danger ${d.danger_m} m. No flight`); break;
@@ -679,6 +685,7 @@ function startLabel() { const b = $("start"); b.textContent = !live() ? "Start" 
 $("speed").oninput = (e) => { $("speedv").textContent = e.target.value + "×"; send({ cmd: "speed", value: +e.target.value }); };
 for (const b of $("link").children) b.onclick = () => send({ cmd: "link", state: b.dataset.v });
 $("degrade").onclick = () => send({ cmd: "degrade", on: !S.sensorDegraded });
+$("surge").onclick = () => send({ cmd: "surge" });
 $("more").addEventListener("beforetoggle", (e) => {
   if (e.newState !== "open") return;
   const r = $("moreBtn").getBoundingClientRect();

@@ -87,8 +87,10 @@ def test_survey_hands_a_camera_change_to_the_agent():
         flips["n"] += 1
         if flips["n"] == 200:
             ep.sensor.degraded = True
+            flips["t"] = ep.bus.t
 
     ep.tickers.append(tick)
     obj = Objective([p.id for p in ep.world.parcels], 0.8, 1e9, "test")
     assert infogain.survey(ep, st.planner, st.env, obj, stop_on_camera=True) == "camera_changed"
     assert any(e["kind"] == "DEGRADED_SENSOR_REPLAN" for e in ep.bus.events)
+    assert ep.bus.t - flips["t"] <= ep.cfg.sim.dt  # stops on the next tick, mid-lane

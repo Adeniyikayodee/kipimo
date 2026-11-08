@@ -82,12 +82,13 @@ class Episode:
             return "wind"
         return "" if self.env.inside_fence((p.x, p.y)) else "geofence"
 
-    def fly_to(self, x: float, y: float, abort: bool = True) -> bool:
+    def fly_to(self, x: float, y: float, abort: bool = True, stop_on_camera: bool = False) -> bool:
         """Fly to a waypoint, observing every tick. False if it stopped short.
 
         abort: stop on wind over the limit or a geofence breach. Homeward legs pass False.
+        stop_on_camera: stop the moment the camera degrades or recovers, so an agent can respond.
         """
-        dt = self.cfg.sim.dt
+        dt, cam = self.cfg.sim.dt, self.sensor.degraded
         while not self.down:
             if abort and (why := self.no_go()):
                 self.bus.emit("LEG_ABORTED", reason=why, pose=self.robot.pose)
@@ -102,6 +103,8 @@ class Episode:
                 self.bus.emit("FORCED_LANDING", pose=self.robot.pose)
             elif arrived:
                 return True
+            elif stop_on_camera and self.sensor.degraded != cam:
+                return False
         return False
 
     def hold(self) -> None:

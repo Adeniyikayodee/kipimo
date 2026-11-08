@@ -337,6 +337,10 @@ def survey(
                 ep.bus.emit("RETURN_TO_HOME", reason=verdict.reason, battery_wh=r.battery_wh)
                 return "battery_reserve"
             ep.bus.emit("PLAN_LANE", parcel=lane.parcel_id, a=a, b=b, gain=gain)
-            if not all(ep.fly_to(x, y) for x, y in path):
+            if not all(ep.fly_to(x, y, stop_on_camera=stop_on_camera) for x, y in path):
+                if stop_on_camera and ep.sensor.degraded != degraded:
+                    q = round(camera_quality(r, ep.sensor.degraded), 3)
+                    ep.bus.emit("DEGRADED_SENSOR_REPLAN", degraded=ep.sensor.degraded, quality=q)
+                    return "camera_changed"
                 return "leg_aborted"
     return "replan_limit"

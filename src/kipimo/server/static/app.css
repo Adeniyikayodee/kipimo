@@ -302,3 +302,7 @@ canvas#dmap { background: #111113; border-radius: 10px; }
   #right { height: 520px; }
   #mapWrap { height: 70vh; }
 }
+/* ?present=1: for recordings, perception big enough to read next to the actions */
+body.present #pip { width: min(40%, 400px); }
+body.present #pipMeta { font-size: 15px; }
+body.present .ev { font-size: 14.5px; line-height: 1.4; }

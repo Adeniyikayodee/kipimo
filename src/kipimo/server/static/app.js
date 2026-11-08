@@ -686,6 +686,7 @@ $("speed").oninput = (e) => { $("speedv").textContent = e.target.value + "×"; s
 for (const b of $("link").children) b.onclick = () => send({ cmd: "link", state: b.dataset.v });
 $("degrade").onclick = () => send({ cmd: "degrade", on: !S.sensorDegraded });
 $("surge").onclick = () => send({ cmd: "surge" });
+if (new URLSearchParams(location.search).has("present")) document.body.classList.add("present");
 $("more").addEventListener("beforetoggle", (e) => {
   if (e.newState !== "open") return;
   const r = $("moreBtn").getBoundingClientRect();

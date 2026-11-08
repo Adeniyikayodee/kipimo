@@ -22,6 +22,11 @@ class BeliefGrid:
         self.n[obs.cell_ids] += w
         self.sx[obs.cell_ids] += w * obs.crop_loss.astype(np.float64)
 
+    def forget(self, cells: np.ndarray) -> None:
+        """Drop every look at these cells, as if never observed."""
+        self.n[cells] = 0.0
+        self.sx[cells] = 0.0
+
     @property
     def alpha(self) -> np.ndarray:
         return self.cfg.k0 * self.prior + self.sx

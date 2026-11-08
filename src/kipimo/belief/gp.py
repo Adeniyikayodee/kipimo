@@ -99,6 +99,29 @@ class GPBelief:
         np.add.at(self.unseen, k, -(~seen0).astype(float))
         self._sigma = None
 
+    def forget(self, cells: np.ndarray) -> None:
+        """Drop every look at these cells, as if never observed: the exact reverse of update.
+
+        Used when the ground changes under old photographs, for example a river breach.
+        """
+        keep = self.pid[cells] >= 0
+        if not keep.any():
+            return
+        ids = np.unique(cells[keep])
+        seen0, pv0, s0, y0, g0 = self._cell(ids)
+        b0 = self.bias(s0, self.sb[ids], self.prec[ids])
+        self.prec[ids], self.ysum[ids], self.sb[ids] = 0.0, 0.0, 0.0
+        _, pv1, s1, y1, g1 = self._cell(ids)
+        np.add.at(self.B, self.pid[ids], self.bias(s1, self.sb[ids], self.prec[ids]) - b0)
+        F, p, k = self.phi(ids), self.prior[ids], self.pid[ids]
+        self.lam += F.T @ ((g1 - g0)[:, None] * F)
+        self.eta += F.T @ (g1 * (y1 - p) - g0 * (y0 - p))
+        np.add.at(self.C, k, (s1 - s0)[:, None] * F)
+        np.add.at(self.K, k, s1 * (y1 - p) - s0 * (y0 - p))
+        np.add.at(self.V, k, pv1 - pv0)
+        np.add.at(self.unseen, k, seen0.astype(float))
+        self._sigma = None
+
     @property
     def sigma(self) -> np.ndarray:
         if self._sigma is None:

@@ -127,6 +127,8 @@ class Episode:
         if not pids:
             return []
         self.surged |= set(pids)
+        cells = np.concatenate([self.world.parcel(pid).cells for pid in pids])
+        self.belief.forget(cells)  # photos from before the breach no longer show the ground
         rng = np.random.default_rng([self.cfg.seed, len(self.surged)])
         self.belief.update(radar_pass(self.world, pids, self.bus.t, rng))
         self.version += 1

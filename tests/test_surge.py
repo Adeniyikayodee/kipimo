@@ -48,3 +48,44 @@ def test_the_radar_pass_raises_the_estimate_and_the_drone_replans_toward_it():
     flown = {e["data"]["parcel"] for e in ep.bus.events[i:] if e["kind"] == "PLAN_LANE"}
     assert flown & set(pids)  # the new plan goes to the flooded fields
     assert np.isfinite([after[pid].confidence for pid in pids]).all()
+
+
+def test_forgetting_returns_the_belief_to_never_observed():
+    from kipimo.robot.sensors import SimSensor
+
+    for model in ("gp", "grid"):
+        cfg = config.load("demo_flood", belief={"model": model})
+        fresh, ep = Episode(cfg), Episode(cfg)
+        sensor = SimSensor(ep.world, np.random.default_rng(1))
+        cells = ep.world.parcels[0].cells
+        for x in (100.0, 160.0, 220.0):
+            ep.robot.pose = type(ep.robot.pose)(x, 120.0, 0.0)
+            ep.belief.update(sensor.observe(ep.robot, 0.0))
+        ep.belief.forget(np.arange(ep.world.size * ep.world.size))
+        a, b = fresh.beliefs(), ep.beliefs()
+        for p in ep.world.parcels:
+            assert abs(a[p.id].loss_mean - b[p.id].loss_mean) < 1e-9, (model, p.id)
+            assert abs(a[p.id].confidence - b[p.id].confidence) < 1e-9, (model, p.id)
+        del cells
+
+
+def test_after_a_breach_paid_amounts_follow_the_new_ground():
+    from kipimo.run import run
+
+    holder = {}
+
+    def setup(st):
+        holder["st"] = st
+
+        def tick():
+            if not st.ep.surged and st.ep.bus.t >= 1020:
+                st.ep.surge()
+
+        st.ep.tickers.append(tick)
+
+    s = run(config.load("demo_flood"), "infogain", None, setup=setup)
+    st = holder["st"]
+    paid = {pid: c.amount for pid, (c, _) in st.engine.issued.items()}
+    for r in s["parcels"]:
+        if r["id"] in st.ep.surged:
+            assert paid.get(r["id"], 0) == r["pay_true"], r["id"]

@@ -11,6 +11,7 @@ CHECKS = {
     "A1_coverage": lambda f: f["coverage"] < 0.25,
     "A2_report_conflict": lambda f: f["report_gap"] >= 2 and f["coverage"] < 0.5,
     "A3_tier_edge": lambda f: f["edge"] < 0.03 and f["confidence"] < 0.9,
+    "A4_tier_hairline": lambda f: f["edge"] < 0.01 and f["confidence"] < 0.95,
 }
 
 

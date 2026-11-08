@@ -15,6 +15,9 @@ def test_rules_hold_from_evidence_only():
     f = {"coverage": 0.4, "report_gap": 2, "edge": 0.01, "confidence": 0.85}
     assert review.holding(f) == ["A2_report_conflict", "A3_tier_edge"]
     assert review.holding({"coverage": 0.9, "report_gap": 0, "edge": 0.2, "confidence": 0.95}) == []
+    hairline = {"coverage": 0.9, "report_gap": 0, "edge": 0.0052, "confidence": 0.92}  # P03 live
+    assert review.holding(hairline) == ["A4_tier_hairline"]
+    assert review.holding(hairline | {"confidence": 0.95}) == []
 
 
 def test_reviewer_challenge_blocks_signing_until_answered():

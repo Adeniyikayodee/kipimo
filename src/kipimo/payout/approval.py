@@ -26,6 +26,7 @@ CHECKS = {
     "F4_challenged": lambda f: f["challenges"] > 0,
     "F5_model_review": lambda f: f["model_review"],
     "F6_adjuster_hold": lambda f: f["hold"],
+    "F7_hairline": lambda f: f["edge"] < 0.01,
 }
 DECISIONS = ("approve", "reject")
 
@@ -79,6 +80,7 @@ class Actuary:
             "confidence": c["confidence"],
             "gate": triggers.gate(),
             "coverage": f["coverage"],
+            "edge": f["edge"],
             "farmer_report": f["farmer_report"],
             "report_gap": f["report_gap"],
             "hold": hold,

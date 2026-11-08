@@ -102,3 +102,8 @@ def test_a_released_hold_still_cannot_pass_the_gate():
     st.actuary.decide(f"H-{pid}", "approve", "a. actuary", "pay it")
     assert pid not in st.engine.issued
     assert _kinds(st, "CLAIM_REFUSED")[-1]["parcel"] == pid
+
+
+def test_a_claim_within_a_point_of_the_payout_line_is_flagged():
+    assert CHECKS["F7_hairline"]({"edge": 0.0052})
+    assert not CHECKS["F7_hairline"]({"edge": 0.02})

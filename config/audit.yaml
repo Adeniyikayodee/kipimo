@@ -6,3 +6,5 @@
   text: When the farmer's report and the estimate are two or more bands apart, at least 50% of the parcel must be observed.
 - id: A3_tier_edge
   text: When the estimate is within 3 points of a payout threshold, confidence must be at least 0.90.
+- id: A4_tier_hairline
+  text: When the estimate is within 1 point of a payout threshold, confidence must be at least 0.95, or a person decides.

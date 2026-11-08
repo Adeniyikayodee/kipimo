@@ -13,3 +13,5 @@
   text: A model, not the rules, approved this claim in review.
 - id: F6_adjuster_hold
   text: The adjuster still holds this claim after three rounds. Only a person can release it.
+- id: F7_hairline
+  text: The estimate is within 1 point of a payout line, so the true loss could fall on either side.

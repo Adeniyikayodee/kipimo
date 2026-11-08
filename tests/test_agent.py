@@ -222,3 +222,20 @@ def test_hovering_costs_battery_and_waiting_on_the_pad_does_not():
     for _ in range(10):
         ep.hold()
     assert ep.robot.battery_wh < before and ep.bus.t == t0 + 10 * ep.cfg.sim.dt
+
+
+def test_survey_waits_for_the_flight_to_match_the_camera():
+    from kipimo.agent import policies
+    from kipimo.agent.tools import Tools
+    from kipimo.episode import Episode
+
+    st = policies.build(Episode(config.load("demo_flood")))
+    tools, pid = Tools(st), st.ep.world.parcels[0].id
+    ask = dict(parcel_ids=[pid], target_confidence=0.8, max_distance_m=500, reason="t")
+    st.ep.sensor.degraded = True  # blurred while the agent was thinking
+    out = tools.call("survey", ask)
+    assert out["stop_reason"] == "camera_changed" and not out["accepted"]
+    tools.call("set_flight", dict(altitude_m=25, speed_mps=4, reason="see clearly"))
+    assert tools.call("survey", ask)["accepted"]
+    st.ep.sensor.degraded = False  # camera back, still flying low
+    assert tools.call("survey", ask)["stop_reason"] == "camera_changed"

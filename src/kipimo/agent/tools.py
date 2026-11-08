@@ -332,6 +332,18 @@ class Tools:
         if verdict:
             ep.bus.emit("OBJECTIVE_REJECTED", objective=obj, reason=verdict)
             return {"accepted": False, "reason": verdict}
+        r = ep.robot
+        if ep.sensor.degraded == (r.altitude_m >= ep.cfg.robot.altitude_m):
+            # the camera changed while the agent was thinking: let it set the flight first
+            q = round(camera_quality(r, ep.sensor.degraded), 3)
+            ep.bus.emit("DEGRADED_SENSOR_REPLAN", degraded=ep.sensor.degraded, quality=q)
+            return {
+                "accepted": False,
+                "stop_reason": "camera_changed",
+                "camera": {"degraded": ep.sensor.degraded, "quality": q},
+                "altitude_m": r.altitude_m,
+                "speed_mps": r.speed_mps,
+            }
         est = self._estimate_m(obj)
         risk = st.planner.risk_table(
             ep.belief, Objective([p.id for p in ep.world.parcels], 0.8, 0, "")

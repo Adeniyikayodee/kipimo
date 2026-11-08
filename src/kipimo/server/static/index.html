@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kipimo: drones and AI agents that get flood-hit farmers paid the same day</title>
+<meta name="description" content="Kipimo uses drones and AI agents to measure flood damage on small farms, so farmers get their insurance paid the same day. A person gives the final yes on every payout.">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header>
+  <div class="brand">Kipimo<small>Drones and AI agents that get flood-hit farmers paid the same day</small></div>
+  <div id="mctl">
+  <div class="mid">
+    <select id="scenario" aria-label="Scenario"></select>
+    <select id="policy" aria-label="Pilot">
+      <option value="agents">AI agents: field, farmer, adjuster</option>
+      <option value="infogain">Planner</option>
+      <option value="lawnmower">Lawnmower</option>
+    </select>
+    <button class="btn primary" id="start">Start</button>
+    <input type="range" id="speed" min="1" max="20" step="1" value="10" aria-label="Simulation speed">
+    <span id="speedv" class="muted" style="width: 28px">10×</span>
+  </div>
+  </div>
+  <div class="tools">
+    <button class="btn" id="back" hidden>Back to mission</button>
+    <button class="btn" id="moreBtn" popovertarget="more" aria-label="More">More</button>
+  </div>
+  <div id="more" popover>
+    <label>Screen</label>
+    <nav class="seg" id="view" aria-label="Screens"><button class="active" data-v="mission">Mission</button><button data-v="district">District</button><button data-v="evals">Evals</button></nav>
+    <div id="faultCtl">
+      <label>Radio link</label>
+      <div class="seg" id="link" role="group" aria-label="Radio link">
+        <button data-v="online" class="active">Online</button>
+        <button data-v="degraded">Weak</button>
+        <button data-v="offline">Offline</button>
+      </div>
+      <label>Camera</label>
+      <button class="btn" id="degrade">Blur the camera</button>
+    </div>
+    <label>Engineering</label>
+    <button class="btn" id="diagBtn" aria-pressed="false">Show diagnostics</button>
+  </div>
+</header>
+
+<div class="views" style="display: contents" role="main">
+<main id="v-mission">
+  <section class="panel">
+    <h2>
+      <span class="seg" id="layers" role="group" aria-label="Map layer">
+        <button class="active" data-l="belief">Crop loss</button>
+        <button data-l="voi">Where to look</button>
+        <button data-l="truth">Ground truth</button>
+      </span>
+      <span class="seg" id="viewMode" role="group" aria-label="Map view"><button class="active" data-v="top">Top</button><button data-v="3d">3D</button></span>
+      <span class="note" id="mapNote"></span>
+    </h2>
+    <div id="mapWrap">
+      <section id="summary" aria-live="polite">
+        <div class="state"><i id="live"></i><span id="status">Ready</span></div>
+        <div class="tile"><small>Farmers paid</small><b id="hPaid">0</b></div>
+        <div class="tile"><small>Paid out</small><b id="hAmount">KES 0</b></div>
+        <div class="tile" title="Simulated minutes after launch"><small>First payout</small><b id="hFirst">-</b></div>
+        <div class="tile"><small>Flown</small><b id="hDist">0.0 km</b></div>
+      </section>
+      <canvas id="map" role="img" aria-label="Map of the fields, the drone's path and crop loss. Click a field for details."></canvas>
+      <div id="scene3d">
+        <div id="labels3d"></div>
+        <div class="hud tr">
+          <span class="seg" id="camMode" role="group" aria-label="Camera"><button class="active" data-c="orbit">Orbit</button><button data-c="follow">Follow</button><button data-c="top">Top</button></span>
+          <span class="seg" id="groundMode" role="group" aria-label="Ground"><button class="active" data-g="1,0">Satellite</button><button data-g="0,0">Illustrated</button><button data-g="-1,0.85">Loss map</button></span>
+          <span class="seg" id="exag" role="group" aria-label="Height exaggeration"><button data-e="1">1×</button><button class="active" data-e="3">3×</button><button data-e="6">6×</button></span>
+        </div>
+        <div id="pip"><div class="fx"></div><i class="cross"></i><span class="rec">Drone camera</span><span class="meta" id="pipMeta"></span></div>
+        <div class="hud bl"><i id="compass">N</i><span class="col"><b id="s3site"></b><span id="hint">Drag to turn, right-drag to move, scroll to zoom</span><span><span id="s3ex">Heights ×3</span>, drone enlarged. <span id="credit">Imagery: Sentinel-2 cloudless 2016 by EOX, contains modified Copernicus Sentinel data, CC BY 4.0</span></span></span></div>
+      </div>
+      <div id="finish" hidden role="dialog" aria-labelledby="finTitle">
+        <svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="22" fill="#30d158"/><path d="M13 22.5l6 6 12-13" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h3 id="finTitle">Mission complete</h3>
+        <p id="finLede"></p>
+        <div id="finGrid"></div>
+        <div class="actions"><button class="btn" id="finClose">Close</button><button class="btn primary" id="finAgain">Run again</button></div>
+      </div>
+      <div id="overlay">Choose a scenario and pilot, then press Start.</div>
+    </div>
+    <div class="mapfoot"><div class="legend" id="legend"></div><div class="cond" id="cond"></div></div>
+  </section>
+
+  <section class="panel" id="right">
+    <aside id="sheet" hidden aria-label="Parcel details">
+      <div class="sh"><div><h3 id="shTitle"></h3><span id="shSub"></span></div><span id="shPill"></span><button id="shClose" aria-label="Close details">✕</button></div>
+      <div class="scroll" id="shBody"></div>
+    </aside>
+    <h2><span class="seg" id="tabs" role="tablist" aria-label="Side panel"><button class="active" data-t="phones">Phones</button><button data-t="fields">Fields</button><button data-t="actuary">Actuary</button><button data-t="log">Log</button></span><span class="note" id="claimNote"></span></h2>
+    <div class="scroll" id="claimScroll" data-t="phones"><div id="claims" role="log" aria-live="polite"></div></div>
+    <div class="scroll" id="fieldScroll" data-t="fields" hidden>
+      <p class="cap">Most money in doubt first. Pays at <span id="gateV">80%</span> confidence.</p>
+      <table>
+        <thead><tr><th>Field</th><th>Farmer</th><th>Crop loss</th><th>Confidence</th><th class="num">In doubt</th><th class="num">Payout</th><th>Status</th></tr></thead>
+        <tbody id="parcels"></tbody>
+      </table>
+    </div>
+    <div class="scroll" id="reviewScroll" data-t="actuary" hidden><div id="review" aria-live="polite"></div></div>
+    <div class="scroll" id="traceScroll" data-t="log" hidden><div id="log"></div></div>
+  </section>
+</main>
+
+<main id="v-district" hidden>
+  <section class="panel">
+    <h2>District <select id="dseed" aria-label="District"></select><span class="note" id="dnote"></span></h2>
+    <div id="dmapWrap"><canvas id="dmap" role="img" aria-label="District map of villages, drone hubs and their routes"></canvas></div>
+    <div class="legend">
+      <span class="key"><i class="dotk" style="background: var(--orange)"></i>flooded village, bigger owes more</span>
+      <span class="key"><i class="dotk" style="background: rgba(235, 235, 245, .18)"></i>dry village</span>
+      <span class="key"><i class="dotk" style="background: var(--orange); box-shadow: 0 0 0 2px var(--red)"></i>out of reach</span>
+      <span class="key"><i class="sw" style="border-top: 1px dashed var(--blue)"></i>one battery's reach</span>
+      <span class="key"><i class="dotk num1">1</i>visit order</span>
+    </div>
+  </section>
+  <section class="panel">
+    <h2>Dispatch <span class="seg" id="dplan" role="group" aria-label="Dispatch plan"><button class="active" data-p="greedy">Most money first</button><button data-p="nearest">Nearest first</button></span></h2>
+    <div class="scroll"><div class="facts two" id="dstats"></div><div class="sub-h">Money left waiting, KES × hours</div><div id="dcompare"></div><div class="sub-h">Each hub's route</div><div id="dqueues"></div></div>
+  </section>
+</main>
+
+<main id="v-evals" hidden></main>
+</div>
+
+<footer id="diag" hidden>
+  <div class="stat"><small>Battery</small><strong id="fBatt">-</strong><div class="batt"><i id="fBattBar" style="width: 100%"></i></div></div>
+  <div class="stat"><small>Distance</small><strong id="fDist">0.00 km</strong><div class="sub" id="fSortie"></div></div>
+  <div class="stat"><small>Camera</small><strong id="fSensor">-</strong><div class="sub" id="fQual"></div></div>
+  <div class="stat"><small>Inference</small><strong id="fLat">-</strong><div class="sub" id="fModel"></div></div>
+  <div class="stat"><small>Link</small><strong id="fLink" class="state-online">online</strong><div class="sub" id="fQueue">queue 0</div></div>
+  <div class="stat"><small>Sent</small><strong id="fBytes">0 B</strong><div class="sub" id="fPkt"></div></div>
+  <div class="stat"><small>Event log</small><strong id="fChain">0 events</strong><div class="sub" id="fHead">-</div></div>
+  <div class="stat"><small>Sim time</small><strong id="fTime">00:00</strong><div class="sub" id="fPolicy"></div></div>
+</footer>
+
+<script type="importmap">{"imports": {"three": "./vendor/three.module.min.js"}}</script>
+<script src="app.js"></script>
+<script type="module" src="map3d.js"></script>
+</body>
+</html>

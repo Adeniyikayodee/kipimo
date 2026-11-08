@@ -15,7 +15,7 @@ Kipimo sends a drone. A river forecast in the format of Google Flood Hub sees th
 | Farmer | Gemini 3.8 Flash | Reads and answers farmers' texts in Swahili and English |
 | Actuary | A person | Gives the final yes on every payment |
 
-![How Kipimo works](docs/how-it-works.gif)
+https://github.com/user-attachments/assets/dc33cce0-4071-4cac-a1e1-92df6c6922c7
 
 **[Watch the 3 minute demo](https://adeniyikayodee.github.io/kipimo-site/kipimo-demo.mp4)** · [1 minute simulation take](https://adeniyikayodee.github.io/kipimo-site/kipimo-sim-1min.mp4) · [Try the dashboard](https://adeniyikayodee.github.io/kipimo-site/) · Built for AgentVerse 2026 (UCL AI Society), Robotics and Finance track.
 
